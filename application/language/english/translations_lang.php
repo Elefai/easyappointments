@@ -484,4 +484,13 @@ $lang['invalid_credentials_provided'] = 'Invalid credentials provided, please tr
 $lang['calendar_url'] = 'Calendar URL';
 $lang['please_select'] = 'Please Select';
 $lang['secret_header'] = 'Secret Header';
+$lang['locations'] = 'Locations';
+$lang['location'] = 'Location';
+$lang['location_details'] = 'Location Details';
+$lang['manage_locations_hint'] = 'Manage clinic/hospital locations';
+$lang['location_saved'] = 'Location saved successfully!';
+$lang['location_deleted'] = 'Location deleted successfully!';
+$lang['delete_location'] = 'Delete Location';
+$lang['select_location'] = 'Select Location';
+$lang['location_name'] = 'Location Name';
 // End

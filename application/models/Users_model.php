@@ -26,6 +26,7 @@ class Users_model extends EA_Model
     protected array $casts = [
         'id' => 'integer',
         'id_roles' => 'integer',
+        'location_id' => 'integer',
     ];
 
     /**
@@ -47,6 +48,7 @@ class Users_model extends EA_Model
         'ldapDn' => 'ldap_dn',
         'notes' => 'notes',
         'roleId' => 'id_roles',
+        'locationId' => 'location_id',
     ];
 
     /**

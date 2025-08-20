@@ -27,6 +27,7 @@ class Appointments_model extends EA_Model
         'id_users_provider' => 'integer',
         'id_users_customer' => 'integer',
         'id_services' => 'integer',
+        'location_id' => 'integer',
     ];
 
     /**
@@ -47,6 +48,7 @@ class Appointments_model extends EA_Model
         'customerId' => 'id_users_customer',
         'googleCalendarId' => 'id_google_calendar',
         'caldavCalendarId' => 'id_caldav_calendar',
+        'locationId' => 'location_id',
     ];
 
     /**
@@ -574,6 +576,7 @@ class Appointments_model extends EA_Model
                 $appointment['id_google_calendar'] !== null ? $appointment['id_google_calendar'] : null,
             'caldavCalendarId' =>
                 $appointment['id_caldav_calendar'] !== null ? $appointment['id_caldav_calendar'] : null,
+            'locationId' => $appointment['location_id'] !== null ? (int) $appointment['location_id'] : null,
         ];
 
         $appointment = $encoded_resource;
@@ -639,6 +642,10 @@ class Appointments_model extends EA_Model
 
         if (array_key_exists('caldavCalendarId', $appointment)) {
             $decoded_request['id_caldav_calendar'] = $appointment['caldavCalendarId'];
+        }
+
+        if (array_key_exists('locationId', $appointment)) {
+            $decoded_request['location_id'] = $appointment['locationId'];
         }
 
         $decoded_request['is_unavailability'] = false;

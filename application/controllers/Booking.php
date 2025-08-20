@@ -54,6 +54,7 @@ class Booking extends EA_Controller
         'id_users_provider',
         'id_users_customer',
         'id_services',
+        'location_id',
     ];
 
     /**
@@ -72,6 +73,7 @@ class Booking extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('settings_model');
         $this->load->model('consents_model');
+        $this->load->model('locations_model');
 
         $this->load->library('timezones');
         $this->load->library('synchronization');
@@ -134,6 +136,7 @@ class Booking extends EA_Controller
             return;
         }
 
+        $available_locations = $this->locations_model->get_active();
         $available_services = $this->services_model->get_available_services(true);
         $available_providers = $this->providers_model->get_available_providers(true);
 
@@ -253,6 +256,7 @@ class Booking extends EA_Controller
 
         script_vars([
             'manage_mode' => $manage_mode,
+            'available_locations' => $available_locations,
             'available_services' => $available_services,
             'available_providers' => $available_providers,
             'date_format' => $date_format,
@@ -269,6 +273,7 @@ class Booking extends EA_Controller
         ]);
 
         html_vars([
+            'available_locations' => $available_locations,
             'available_services' => $available_services,
             'available_providers' => $available_providers,
             'theme' => $theme,
