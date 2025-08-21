@@ -72,6 +72,7 @@ const PRIV_SYSTEM_SETTINGS = 'system_settings';
 const PRIV_USER_SETTINGS = 'user_settings';
 const PRIV_WEBHOOKS = 'webhooks';
 const PRIV_BLOCKED_PERIODS = 'blocked_periods';
+const PRIV_LOCATIONS = 'locations';
 
 const DATE_FORMAT_DMY = 'DMY';
 const DATE_FORMAT_MDY = 'MDY';
@@ -152,6 +153,8 @@ const WEBHOOK_ADMIN_SAVE = 'admin_save';
 const WEBHOOK_ADMIN_DELETE = 'admin_delete';
 const WEBHOOK_BLOCKED_PERIOD_SAVE = 'blocked_period_save';
 const WEBHOOK_BLOCKED_PERIOD_DELETE = 'blocked_period_delete';
+const WEBHOOK_LOCATION_SAVE = 'location_save';
+const WEBHOOK_LOCATION_DELETE = 'location_delete';
 
 /* End of file constants.php */
 /* Location: ./application/config/constants.php */

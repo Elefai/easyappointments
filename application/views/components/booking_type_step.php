@@ -6,7 +6,7 @@
  */
 ?>
 
-<div id="wizard-frame-1" class="wizard-frame" style="visibility: hidden;">
+<div id="wizard-frame-2" class="wizard-frame" style="visibility: hidden;">
     <div class="frame-container">
         <h2 class="frame-title mt-md-5"><?= lang('service_and_provider') ?></h2>
 
@@ -105,10 +105,14 @@
     </div>
 
     <div class="command-buttons">
-        <span>&nbsp;</span>
+        <button type="button" id="button-back-2" class="btn btn-outline-secondary"
+                data-step_index="2">
+            <i class="fas fa-chevron-left me-2"></i>
+            <?= lang('back') ?>
+        </button>
 
-        <button type="button" id="button-next-1" class="btn button-next btn-dark"
-                data-step_index="1">
+        <button type="button" id="button-next-2" class="btn button-next btn-dark"
+                data-step_index="2">
             <?= lang('next') ?>
             <i class="fas fa-chevron-right ms-2"></i>
         </button>

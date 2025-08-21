@@ -10,6 +10,10 @@
     'display_delete_personal_information' => vars('display_delete_personal_information'),
 ]); ?>
 
+<!-- Select Location -->
+
+<?php component('booking_location_step', ['available_locations' => vars('available_locations')]); ?>
+
 <!-- Select Service & Provider -->
 
 <?php component('booking_type_step', ['available_services' => vars('available_services')]); ?>

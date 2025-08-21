@@ -484,4 +484,13 @@ $lang['invalid_credentials_provided'] = 'Credenciais inválidas fornecidas, por 
 $lang['calendar_url'] = 'URL do Calendário';
 $lang['please_select'] = 'Por Favor, Selecione';
 $lang['secret_header'] = 'Secret Header';
+$lang['locations'] = 'Localizações';
+$lang['location'] = 'Localização';
+$lang['location_details'] = 'Detalhes da Localização';
+$lang['manage_locations_hint'] = 'Gerenciar localizações de clínicas/hospitais';
+$lang['location_saved'] = 'Localização salva com sucesso!';
+$lang['location_deleted'] = 'Localização excluída com sucesso!';
+$lang['delete_location'] = 'Excluir Localização';
+$lang['select_location'] = 'Selecionar Localização';
+$lang['location_name'] = 'Nome da Localização';
 // End

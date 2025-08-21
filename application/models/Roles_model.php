@@ -32,6 +32,9 @@ class Roles_model extends EA_Model
         'users' => 'integer',
         'system_settings' => 'integer',
         'user_settings' => 'integer',
+        'webhooks' => 'integer',
+        'blocked_periods' => 'integer',
+        'locations' => 'integer',
     ];
 
     /**

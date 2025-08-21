@@ -47,6 +47,7 @@ The application is designed to be flexible enough so that it can handle any ente
 
 * Customers and appointments management.
 * Services and providers organization.
+* **Multi-location support for clinics/hospitals.**
 * Working plan and booking rules.
 * Google Calendar synchronization.
 * Email notifications system.
@@ -94,6 +95,85 @@ If you have problems installing or configuring the application visit the
 [official support group](https://groups.google.com/forum/#!forum/easy-appointments).
 You can also report problems on the [issues page](https://github.com/alextselegidis/easyappointments/issues)
 and help the development progress.
+
+## Multi-Location System
+
+This fork includes a comprehensive multi-location system that allows you to manage multiple clinics or hospitals from a single installation.
+
+### Features
+
+* **Location Management**: Create and manage multiple locations with name, address, phone, and email.
+* **Service Assignment**: Assign services to specific locations.
+* **Provider Assignment**: Assign providers to specific locations.
+* **Location-based Booking**: Customers select location as the first step in the booking process.
+* **Filtered Availability**: Services and providers are filtered based on selected location.
+* **Location-aware Appointments**: All appointments are linked to specific locations.
+
+### Setup Multi-Location System
+
+After installing Easy!Appointments, follow these steps to enable the multi-location system:
+
+1. **Run Database Migrations**:
+   ```bash
+   # Navigate to your Easy!Appointments installation directory
+   cd /path/to/easyappointments
+   
+   # Run the migrations to create location tables and add location_id columns
+   php index.php migrate
+   ```
+
+2. **Configure Locations**:
+   - Login to the admin panel
+   - Navigate to **Locations** in the main menu
+   - Add your clinics/hospitals with their details (name, address, phone, email)
+   - Make sure locations are marked as "Active"
+
+3. **Assign Services to Locations**:
+   - Go to **Services** menu
+   - Edit each service and assign it to the appropriate location(s)
+   - Services without location assignment will be available for all locations
+
+4. **Assign Providers to Locations**:
+   - Go to **Users** → **Providers** menu  
+   - Edit each provider and assign them to their location
+   - Providers without location assignment will be available for all locations
+
+5. **Test the Booking Flow**:
+   - Visit your booking page
+   - The first step should now be location selection
+   - Verify that services and providers are filtered based on selected location
+
+### Database Changes
+
+The multi-location system adds the following database changes:
+
+* **New Table**: `ea_locations` - Stores location information
+* **Modified Tables**:
+  - `ea_services` - Added `location_id` column
+  - `ea_users` - Added `location_id` column (for providers)
+  - `ea_appointments` - Added `location_id` column
+  - `ea_roles` - Added `locations` permissions column
+
+### Default Data
+
+The system comes with two sample locations:
+- **Clínica ABC** - Rua das Flores, 123 - Centro - São Paulo/SP
+- **Clínica XYZ** - Av. Paulista, 1000 - Bela Vista - São Paulo/SP
+
+You can modify or delete these and create your own locations as needed.
+
+### Booking Flow Changes
+
+The booking process now includes these steps:
+1. **Select Location** - Customer chooses clinic/hospital
+2. **Select Service & Provider** - Filtered by chosen location  
+3. **Select Date & Time** - Based on provider availability
+4. **Customer Information** - Contact details
+5. **Confirmation** - Review and confirm appointment
+
+### Permissions
+
+Administrators can control access to the location management system through the **Locations** permission in user roles.
 
 ## License 
 
