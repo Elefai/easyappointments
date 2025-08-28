@@ -108,6 +108,14 @@ class Appointments_api_v1 extends EA_Controller
                 $where['id_users_customer'] = $customer_id;
             }
 
+            // Location ID query param.
+            $location_id = request('locationId');
+
+            if (!empty($location_id)) {
+                $where['location_id'] = $location_id;
+            }
+
+
             $appointments = empty($keyword)
                 ? $this->appointments_model->get($where, $limit, $offset, $order_by)
                 : $this->appointments_model->search($keyword, $limit, $offset, $order_by);

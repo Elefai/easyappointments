@@ -163,6 +163,8 @@ You can also try the GET requests with your browser by navigating to the respect
 - `PUT /api/v1/appointments/:id` Provide the updated appointment JSON in the request body to update an existing record. The ID in the URI is required. 
 - `DELETE /api/v1/appointments/:id` Remove an existing appointment record.
 
+- `GET /api/v1/appointments?locationId=:id` Filter appointments by location.
+
 ### Unavailabilities
 
 **Resource JSON**
@@ -389,6 +391,26 @@ You can also try the GET requests with your browser by navigating to the respect
 - `DELETE /api/v1/providers/:id` Remove an existing provider record.
 
 **Note: The `password` field is optional and should only be provided when creating (POST) or updating (PUT) a record.** 
+
+### Locations
+
+**Resource JSON**
+
+```
+{
+    "id": 1,
+    "name": "Main Clinic",
+    "address": "Test Street 1A, 12345 Some State, Some Place",
+    "phone": "+10000000000",
+    "email": "info@example.org",
+    "active": true
+}
+```
+
+- `GET /api/v1/locations[/:id]` Get all the locations or a specific one by providing the ID in the URI.
+- `POST /api/v1/locations` Provide the new location JSON in the request body to insert a new record.
+- `PUT /api/v1/locations/:id` Provide the updated location JSON in the request body to update an existing record. The ID in the URI is required.
+- `DELETE /api/v1/locations/:id` Remove an existing location record.
 
 ### Secretaries
 
