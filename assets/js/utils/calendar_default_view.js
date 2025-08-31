@@ -1558,13 +1558,16 @@ App.Utils.CalendarDefaultView = (function () {
             $('<optgroup/>', {
                 'label': lang('services'),
                 'type': 'services-group',
-                'html': vars('available_services').map((availableService) =>
-                    $('<option/>', {
+                'html': vars('available_services').map((availableService) => {
+                    const label = availableService.location
+                        ? `${availableService.name} — ${availableService.location}`
+                        : availableService.name;
+                    return $('<option/>', {
                         'value': availableService.id,
                         'type': FILTER_TYPE_SERVICE,
-                        'text': availableService.name,
-                    }),
-                ),
+                        'text': label,
+                    });
+                }),
             }).appendTo('#select-filter-item');
         }
 
