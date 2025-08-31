@@ -17,11 +17,29 @@ permissions:
 
 jobs:
   make-public:
-    # Run automatically on push to main only if secret exists; always run on manual confirm
-    if: ${{ (github.event_name == 'push' && (secrets.PACKAGES_TOKEN != '' )) || (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'yes') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Decide run gate
+        id: gate
+        run: |
+          RUN=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.confirm }}" = "yes" ]; then RUN=true; fi
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "${{ secrets.PACKAGES_TOKEN }}" ]; then RUN=true; fi
+          echo "run=$RUN" >> $GITHUB_OUTPUT
+
+      - name: Exit if gated
+        if: steps.gate.outputs.run != 'true'
+        run: |
+          echo "Skipping: missing PACKAGES_TOKEN or no manual confirm."
+          exit 0
+
+      - name: Ensure jq
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          command -v jq >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y jq)
+
       - name: Validate PAT secret present
+        if: steps.gate.outputs.run == 'true'
         run: |
           if [ -z "${{ secrets.PACKAGES_TOKEN }}" ]; then
             echo "Missing repo secret PACKAGES_TOKEN (requires write:packages)" >&2
@@ -29,6 +47,7 @@ jobs:
           fi
 
       - name: Make GHCR packages public
+        if: steps.gate.outputs.run == 'true'
         env:
           TOKEN: ${{ secrets.PACKAGES_TOKEN }}
         run: |
@@ -40,10 +59,16 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28"
           )
 
+          echo "Listing current container packages for $GITHUB_ACTOR (for debug)" || true
+          curl -sS "${API}/user/packages?package_type=container" "${HDRS[@]}" | jq -r '.[].name' || true
+
           for pkg in easyappointments-php-fpm easyappointments-php-fpm-prod easyappointments-web; do
             echo "Setting visibility: ${pkg} -> public"
-            curl -sSf -X PATCH "${API}/user/packages/container/${pkg}/visibility" "${HDRS[@]}" -d '{"visibility":"public"}'
-            echo "\n${pkg}: OK"
+            if curl -sSf -X PATCH "${API}/user/packages/container/${pkg}/visibility" "${HDRS[@]}" -d '{"visibility":"public"}'; then
+              echo "\n${pkg}: OK"
+              continue
+            fi
+            echo "\nUser endpoint failed for ${pkg}. If package not found yet, ensure Docker Build pushed it first." >&2
           done
 
           echo "All packages updated to public."
