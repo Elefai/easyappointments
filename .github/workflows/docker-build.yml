@@ -34,8 +34,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up QEMU (multi-arch)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,amd64
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Detect platforms for PHP base
+        id: platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=php:8.4-fpm
+          PLATFORMS="linux/amd64,linux/arm64"
+          echo "Checking base image platforms for $BASE"
+          if ! docker buildx imagetools inspect "$BASE" >/tmp/inspect.txt 2>/dev/null; then
+            echo "Imagetools inspect failed; defaulting to amd64"
+            PLATFORMS="linux/amd64"
+          else
+            if ! grep -q 'linux/arm64' /tmp/inspect.txt; then
+              echo "arm64 not found in base image; using amd64 only"
+              PLATFORMS="linux/amd64"
+            fi
+          fi
+          echo "list=$PLATFORMS" >> "$GITHUB_OUTPUT"
 
       - name: Decide push mode
         id: meta
@@ -101,7 +125,7 @@ jobs:
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile \
-            --platform linux/amd64,linux/arm64 \
+            --platform ${{ steps.platforms.outputs.list }} \
             ${{ steps.meta.outputs.tags_dev }} \
             --push \
             .
@@ -111,7 +135,7 @@ jobs:
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile.prod \
-            --platform linux/amd64,linux/arm64 \
+            --platform ${{ steps.platforms.outputs.list }} \
             ${{ steps.meta.outputs.tags_prod }} \
             --push \
             .
@@ -122,7 +146,7 @@ jobs:
           docker buildx build \
             -f docker/apache/Dockerfile.web \
             --build-arg PHP_VARIANT=8.2 \
-            --platform linux/amd64,linux/arm64 \
+            --platform ${{ steps.platforms.outputs.list }} \
             ${{ steps.meta.outputs.tags_web }} \
             --push \
             .
