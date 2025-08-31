@@ -170,6 +170,31 @@ class Calendar extends EA_Controller
 
         $available_services = $this->services_model->get_available_services();
 
+        // Restrict services to the selected scope for providers/secretaries
+        if ($role_slug === DB_SLUG_PROVIDER) {
+            $allowed_service_ids = [];
+            foreach ($available_providers as $provider) {
+                foreach ($provider['services'] as $sid) {
+                    $allowed_service_ids[$sid] = true;
+                }
+            }
+            $available_services = array_values(array_filter($available_services, function ($svc) use ($allowed_service_ids) {
+                return isset($allowed_service_ids[$svc['id']]);
+            }));
+        }
+
+        if ($role_slug === DB_SLUG_SECRETARY) {
+            $allowed_service_ids = [];
+            foreach ($available_providers as $provider) {
+                foreach ($provider['services'] as $sid) {
+                    $allowed_service_ids[$sid] = true;
+                }
+            }
+            $available_services = array_values(array_filter($available_services, function ($svc) use ($allowed_service_ids) {
+                return isset($allowed_service_ids[$svc['id']]);
+            }));
+        }
+
         $calendar_view = request('view', $user['settings']['calendar_view']);
 
         $appointment_status_options = setting('appointment_status_options');
