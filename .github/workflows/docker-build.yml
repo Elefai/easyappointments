@@ -154,6 +154,7 @@ jobs:
             .
 
       - name: docker compose build (validate services)
+        if: steps.meta.outputs.push != 'true'
         run: |
           docker compose version
           docker compose config
