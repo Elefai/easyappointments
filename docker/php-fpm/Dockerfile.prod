@@ -1,5 +1,6 @@
 # Production image for Easy!Appointments php-fpm
-FROM php:8.4-fpm AS build
+ARG PHP_VARIANT=8.2
+FROM php:${PHP_VARIANT}-fpm AS build
 
 WORKDIR /var/www/html
 
@@ -45,7 +46,7 @@ COPY assets ./assets
 RUN npx gulp clean vendor scripts styles
 
 # Final runtime
-FROM php:8.4-fpm AS runtime
+FROM php:${PHP_VARIANT}-fpm AS runtime
 WORKDIR /var/www/html
 
 # Install runtime PHP extensions (match build stage)

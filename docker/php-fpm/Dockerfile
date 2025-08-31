@@ -1,4 +1,5 @@
-FROM php:8.4-fpm
+ARG PHP_VARIANT=8.2
+FROM php:${PHP_VARIANT}-fpm
 
 WORKDIR "/var/www/html"
 

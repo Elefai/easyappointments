@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE=php:8.4-fpm
+          BASE=php:8.2-fpm
           PLATFORMS="linux/amd64,linux/arm64"
           echo "Checking base image platforms for $BASE"
           if ! docker buildx imagetools inspect "$BASE" >/tmp/inspect.txt 2>/dev/null; then
@@ -125,6 +125,7 @@ jobs:
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile \
+            --build-arg PHP_VARIANT=8.2 \
             --platform ${{ steps.platforms.outputs.list }} \
             ${{ steps.meta.outputs.tags_dev }} \
             --push \
@@ -135,6 +136,7 @@ jobs:
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile.prod \
+            --build-arg PHP_VARIANT=8.2 \
             --platform ${{ steps.platforms.outputs.list }} \
             ${{ steps.meta.outputs.tags_prod }} \
             --push \
