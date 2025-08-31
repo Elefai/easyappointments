@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  php-fpm:
+    image: ghcr.io/${DOCKER_USER:-Elefai}/easyappointments-php-fpm-prod:${TAG:-latest}
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - eapp-storage:/var/www/html/storage
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - target: 80
+        published: ${PUBLISHED_PORT:-8080}
+        protocol: tcp
+        mode: host
+    configs:
+      - source: eapp-nginx
+        target: /etc/nginx/conf.d/default.conf
+    depends_on:
+      - php-fpm
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-secret}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-easyappointments}
+      - MYSQL_USER=${MYSQL_USER:-user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-password}
+    volumes:
+      - eapp-mysql:/var/lib/mysql
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  web:
+    driver: overlay
+
+volumes:
+  eapp-storage: {}
+  eapp-mysql: {}
+
+configs:
+  eapp-nginx:
+    file: ./docker/nginx/nginx.conf
+
