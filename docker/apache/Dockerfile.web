@@ -5,11 +5,11 @@ FROM php:${PHP_VARIANT}-apache AS build
 WORKDIR /var/www/html
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git zip unzip ca-certificates \
+    && apt-get install -y --no-install-recommends git zip unzip ca-certificates curl \
     && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
     && chmod +x /usr/local/bin/install-php-extensions \
     && install-php-extensions \
-        gd intl ldap mbstring mysqli odbc pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis \
+        gd intl ldap mbstring mysqli pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis opcache \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && a2enmod rewrite \
     && apt-get -y autoremove \
@@ -31,15 +31,24 @@ FROM php:${PHP_VARIANT}-apache AS runtime
 WORKDIR /var/www/html
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
     && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
     && chmod +x /usr/local/bin/install-php-extensions \
     && install-php-extensions \
-        gd intl ldap mbstring mysqli odbc pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis \
+        gd intl ldap mbstring mysqli pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis opcache \
     && a2enmod rewrite \
     && apt-get -y autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# PHP production tuning (opcache)
+RUN { \
+      echo 'opcache.enable=1'; \
+      echo 'opcache.validate_timestamps=0'; \
+      echo 'opcache.max_accelerated_files=20000'; \
+      echo 'opcache.memory_consumption=128'; \
+      echo 'opcache.interned_strings_buffer=16'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini
 
 # Apache: enable AllowOverride for .htaccess
 COPY docker/apache/vhost.conf /etc/apache2/conf-enabled/000-eapp.conf
@@ -55,5 +64,5 @@ COPY --from=assets /app/assets ./assets
 RUN chown -R www-data:www-data storage
 
 EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fsS http://127.0.0.1/ || exit 1
 CMD ["apache2-foreground"]
-
