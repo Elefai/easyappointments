@@ -60,18 +60,20 @@
                                 if (count($group) > 0) {
                                     echo '<optgroup label="' . e($group_label) . '">';
                                     foreach ($group as $service) {
-                                        echo '<option value="' .
-                                            $service['id'] .
-                                            '">' .
-                                            e($service['name']) .
-                                            '</option>';
+                                        $label = !empty($service['location'])
+                                            ? e($service['name'] . ' — ' . $service['location'])
+                                            : e($service['name']);
+                                        echo '<option value="' . $service['id'] . '">' . $label . '</option>';
                                     }
                                     echo '</optgroup>';
                                 }
                             }
                         } else {
                             foreach ($available_services as $service) {
-                                echo '<option value="' . $service['id'] . '">' . e($service['name']) . '</option>';
+                                $label = !empty($service['location'])
+                                    ? e($service['name'] . ' — ' . $service['location'])
+                                    : e($service['name']);
+                                echo '<option value="' . $service['id'] . '">' . $label . '</option>';
                             }
                         }
                         ?>

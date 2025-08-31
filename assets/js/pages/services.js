@@ -356,7 +356,7 @@ App.Pages.Services = (function () {
      * @return {String} The HTML code that represents the record on the filter results list.
      */
     function getFilterHtml(service) {
-        const name = service.name;
+        const name = service.location ? `${service.name} — ${service.location}` : service.name;
 
         const info = service.duration + ' min - ' + service.price + ' ' + service.currency;
 

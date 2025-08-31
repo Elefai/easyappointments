@@ -63,6 +63,8 @@ class Availabilities_api_v1 extends EA_Controller
 
             $date = request('date');
 
+            $location = request('location');
+
             if (!$date) {
                 $date = date('Y-m-d');
             }
@@ -70,6 +72,15 @@ class Availabilities_api_v1 extends EA_Controller
             $provider = $this->providers_model->find($provider_id);
 
             $service = $this->services_model->find($service_id);
+
+            // Optional location filter: if provided and doesn't match service location, return empty list.
+            if ($location !== null && $location !== '') {
+                $svc_loc = $service['location'] ?? '';
+                if (mb_strtolower((string) $svc_loc) !== mb_strtolower((string) $location)) {
+                    json_response([]);
+                    return;
+                }
+            }
 
             $available_hours = $this->availability->get_available_hours($date, $service, $provider);
 
