@@ -1,0 +1,35 @@
+name: Docker Build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - master
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+      - master
+
+jobs:
+  build-php-fpm:
+    name: Build php-fpm image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build php-fpm image
+        run: |
+          docker build \
+            -f docker/php-fpm/Dockerfile \
+            -t easyappointments-php-fpm:ci \
+            .
+
