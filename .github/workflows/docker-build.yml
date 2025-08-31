@@ -70,5 +70,12 @@ jobs:
           platforms: ${{ steps.plat.outputs.platforms }}
           push: ${{ steps.vars.outputs.push }}
           tags: ${{ steps.vars.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=easyappointments-web
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}/pkgs/container/easyappointments-web
+            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.description=Web image (Apache + PHP 8.2 + Opcache). UI: clinic selector on calendar; service labels show location across UI; API: optional 'location' filter on /availabilities. '-amd64' tags build only linux/amd64 for faster testing.
           cache-from: type=gha
           cache-to: type=gha,mode=max
