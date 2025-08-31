@@ -121,7 +121,7 @@ jobs:
             -t easyappointments-web:ci .
 
       - name: Push dev image (multi-arch)
-        if: steps.meta.outputs.push == 'true'
+        if: false # skip pushing dev image on main/tags; keep only web/prod
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile \
