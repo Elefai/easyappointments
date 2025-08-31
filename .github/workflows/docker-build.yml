@@ -29,6 +29,7 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_DEV: ghcr.io/${{ github.repository_owner }}/easyappointments-php-fpm
       IMAGE_PROD: ghcr.io/${{ github.repository_owner }}/easyappointments-php-fpm-prod
+      IMAGE_WEB: ghcr.io/${{ github.repository_owner }}/easyappointments-web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,6 +57,8 @@ jobs:
           echo "push=$PUSH" >> $GITHUB_OUTPUT
           echo "tags_dev=$TAGS_DEV" >> $GITHUB_OUTPUT
           echo "tags_prod=$TAGS_PROD" >> $GITHUB_OUTPUT
+          # web image uses same tagging rules
+          echo "tags_web=${TAGS_DEV/"${IMAGE_DEV}"/"${IMAGE_WEB}"}" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         if: steps.meta.outputs.push == 'true'
@@ -83,6 +86,16 @@ jobs:
             --load \
             -t easyappointments-php-fpm-prod:ci .
 
+      - name: Build web image (PR/branches)
+        if: steps.meta.outputs.push != 'true'
+        run: |
+          docker buildx build \
+            -f docker/apache/Dockerfile.web \
+            --build-arg PHP_VARIANT=8.2 \
+            --platform linux/amd64 \
+            --load \
+            -t easyappointments-web:ci .
+
       - name: Push dev image (multi-arch)
         if: steps.meta.outputs.push == 'true'
         run: |
@@ -100,6 +113,17 @@ jobs:
             -f docker/php-fpm/Dockerfile.prod \
             --platform linux/amd64,linux/arm64 \
             ${{ steps.meta.outputs.tags_prod }} \
+            --push \
+            .
+
+      - name: Push web image (multi-arch)
+        if: steps.meta.outputs.push == 'true'
+        run: |
+          docker buildx build \
+            -f docker/apache/Dockerfile.web \
+            --build-arg PHP_VARIANT=8.2 \
+            --platform linux/amd64,linux/arm64 \
+            ${{ steps.meta.outputs.tags_web }} \
             --push \
             .
 

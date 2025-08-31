@@ -1,0 +1,59 @@
+ARG PHP_VARIANT=8.2
+
+FROM php:${PHP_VARIANT}-apache AS build
+
+WORKDIR /var/www/html
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git zip unzip ca-certificates \
+    && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
+    && chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions \
+        gd intl ldap mbstring mysqli odbc pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && a2enmod rewrite \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+FROM node:18-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY gulpfile.js babel.config.json ./
+COPY assets ./assets
+RUN npx gulp clean vendor scripts styles
+
+FROM php:${PHP_VARIANT}-apache AS runtime
+WORKDIR /var/www/html
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
+    && chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions \
+        gd intl ldap mbstring mysqli odbc pdo pdo_mysql soap sockets xml zip exif sqlite3 gettext bcmath redis \
+    && a2enmod rewrite \
+    && apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Apache: enable AllowOverride for .htaccess
+COPY docker/apache/vhost.conf /etc/apache2/conf-enabled/000-eapp.conf
+
+COPY application ./application
+COPY system ./system
+COPY index.php patch.php config-sample.php ./
+COPY storage ./storage
+
+COPY --from=build /var/www/html/vendor ./vendor
+COPY --from=assets /app/assets ./assets
+
+RUN chown -R www-data:www-data storage
+
+EXPOSE 80
+CMD ["apache2-foreground"]
+
