@@ -582,7 +582,7 @@ App.Pages.Providers = (function () {
                             }),
                             $('<label/>', {
                                 'class': 'form-check-label',
-                                'text': service.name,
+                                'text': service.location ? `${service.name} — ${service.location}` : service.name,
                                 'for': checkboxId,
                             }),
                         ],
