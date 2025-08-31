@@ -9,16 +9,26 @@ on:
       - 'feat/**'
       - 'fix/**'
       - 'chore/**'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
       - develop
       - master
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-php-fpm:
     name: Build php-fpm image
     runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_DEV: ghcr.io/${{ github.repository_owner }}/easyappointments-php-fpm
+      IMAGE_PROD: ghcr.io/${{ github.repository_owner }}/easyappointments-php-fpm-prod
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,10 +36,77 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build php-fpm image
+      - name: Decide push mode
+        id: meta
         run: |
-          docker build \
+          PUSH=false
+          TAGS_DEV=""
+          TAGS_PROD=""
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" ]]; then
+              PUSH=true
+              TAGS_DEV="--tag ${IMAGE_DEV}:latest --tag ${IMAGE_DEV}:sha-${GITHUB_SHA::12}"
+              TAGS_PROD="--tag ${IMAGE_PROD}:latest --tag ${IMAGE_PROD}:sha-${GITHUB_SHA::12}"
+            elif [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ ^v ]]; then
+              PUSH=true
+              TAGS_DEV="--tag ${IMAGE_DEV}:${GITHUB_REF_NAME}"
+              TAGS_PROD="--tag ${IMAGE_PROD}:${GITHUB_REF_NAME}"
+            fi
+          fi
+          echo "push=$PUSH" >> $GITHUB_OUTPUT
+          echo "tags_dev=$TAGS_DEV" >> $GITHUB_OUTPUT
+          echo "tags_prod=$TAGS_PROD" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        if: steps.meta.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build dev php-fpm image
+        run: |
+          docker buildx build \
             -f docker/php-fpm/Dockerfile \
-            -t easyappointments-php-fpm:ci \
+            --platform linux/amd64 \
+            ${{ steps.meta.outputs.tags_dev }} \
+            --load \
             .
 
+      - name: Build prod php-fpm image
+        run: |
+          docker buildx build \
+            -f docker/php-fpm/Dockerfile.prod \
+            --platform linux/amd64 \
+            ${{ steps.meta.outputs.tags_prod }} \
+            --load \
+            .
+
+      - name: Push dev image
+        if: steps.meta.outputs.push == 'true'
+        run: |
+          for tag in ${{ steps.meta.outputs.tags_dev }}; do :; done
+          # rebuild with --push since Buildx can't push loaded images
+          docker buildx build \
+            -f docker/php-fpm/Dockerfile \
+            --platform linux/amd64 \
+            ${{ steps.meta.outputs.tags_dev }} \
+            --push \
+            .
+
+      - name: Push prod image
+        if: steps.meta.outputs.push == 'true'
+        run: |
+          docker buildx build \
+            -f docker/php-fpm/Dockerfile.prod \
+            --platform linux/amd64 \
+            ${{ steps.meta.outputs.tags_prod }} \
+            --push \
+            .
+
+      - name: docker compose build (validate services)
+        run: |
+          docker compose version
+          docker compose config
+          docker compose build --pull
