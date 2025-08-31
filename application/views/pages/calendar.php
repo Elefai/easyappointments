@@ -4,13 +4,16 @@
 
 <div class="container-fluid backend-page" id="calendar-page">
     <div class="row" id="calendar-toolbar">
-        <div id="calendar-filter" class="col-md-3">
-            <div class="calendar-filter-items">
+        <div id="calendar-filter" class="col-md-4">
+            <div class="calendar-filter-items d-flex gap-2">
                 <select id="select-filter-item"
                         class="form-select col"
                         data-tippy-content="<?= lang('select_filter_item_hint') ?>"
                         aria-label="Filter">
                     <!-- JS -->
+                </select>
+                <select id="select-clinic" class="form-select col" aria-label="<?= lang('location') ?>" hidden>
+                    <!-- JS: populated by calendar_default_view.js -->
                 </select>
             </div>
         </div>
@@ -148,4 +151,3 @@
 <script src="<?= asset_url('assets/js/pages/calendar.js') ?>"></script>
 
 <?php end_section('scripts'); ?>
-

@@ -21,6 +21,7 @@ App.Utils.CalendarDefaultView = (function () {
     const $reloadAppointments = $('#reload-appointments');
     const $calendar = $('#calendar');
     const $selectFilterItem = $('#select-filter-item');
+    const $selectClinic = $('#select-clinic');
     const $appointmentsModal = $('#appointments-modal');
     const $unavailabilitiesModal = $('#unavailabilities-modal');
     const $header = $('#header');
@@ -59,6 +60,20 @@ App.Utils.CalendarDefaultView = (function () {
                 calendarView.activeStart,
                 calendarView.activeEnd,
             );
+        });
+
+        // Event: Clinic selector change
+        $calendarToolbar.on('change', '#select-clinic', () => {
+            const selectedClinic = $selectClinic.val();
+            try {
+                window.localStorage.setItem('EasyAppointments.SelectedClinic', selectedClinic || '');
+            } catch (e) {}
+
+            // Rebuild services list based on clinic
+            rebuildServicesFilterOptions();
+
+            // Trigger reload
+            $reloadAppointments.trigger('click');
         });
 
         /**
@@ -1200,7 +1215,14 @@ App.Utils.CalendarDefaultView = (function () {
                 calendarEventSources.forEach((calendarEventSource) => calendarEventSource.remove());
 
                 // Add appointments to calendar.
-                response.appointments.forEach((appointment) => {
+                const selectedClinic = ($('#select-clinic').val() || '').toLowerCase();
+                const appointments = (response.appointments || []).filter((appointment) => {
+                    if (!selectedClinic) return true;
+                    const svcLoc = (appointment.service && appointment.service.location) || '';
+                    return String(svcLoc).toLowerCase() === selectedClinic;
+                });
+
+                appointments.forEach((appointment) => {
                     const title = [appointment.service.name];
 
                     const customerInfo = [];
@@ -1555,20 +1577,9 @@ App.Utils.CalendarDefaultView = (function () {
         }
 
         if (vars('available_services').length > 0) {
-            $('<optgroup/>', {
-                'label': lang('services'),
-                'type': 'services-group',
-                'html': vars('available_services').map((availableService) => {
-                    const label = availableService.location
-                        ? `${availableService.name} — ${availableService.location}`
-                        : availableService.name;
-                    return $('<option/>', {
-                        'value': availableService.id,
-                        'type': FILTER_TYPE_SERVICE,
-                        'text': label,
-                    });
-                }),
-            }).appendTo('#select-filter-item');
+            // Initialize clinic selector and services list
+            initClinicSelector();
+            rebuildServicesFilterOptions();
         }
 
         // Check permissions.
@@ -1660,6 +1671,67 @@ App.Utils.CalendarDefaultView = (function () {
                 fullCalendar.view.activeEnd,
             );
         }, 60000);
+    }
+
+    // Helpers
+    function uniqueClinicsFromServices(services) {
+        const set = new Set();
+        services.forEach((s) => {
+            if (s.location && String(s.location).trim() !== '') set.add(String(s.location));
+        });
+        return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }
+
+    function initClinicSelector() {
+        const clinics = uniqueClinicsFromServices(vars('available_services'));
+        if (!$selectClinic.length) return;
+        if (!clinics.length) {
+            $selectClinic.prop('hidden', true);
+            return;
+        }
+
+        $selectClinic.empty();
+        $selectClinic.append(new Option(lang('all'), '', true, false));
+        clinics.forEach((c) => $selectClinic.append(new Option(c, c)));
+
+        // Restore previous selection
+        try {
+            const saved = window.localStorage.getItem('EasyAppointments.SelectedClinic') || '';
+            if (saved && clinics.includes(saved)) {
+                $selectClinic.val(saved);
+            }
+        } catch (e) {}
+
+        $selectClinic.prop('hidden', false);
+    }
+
+    function rebuildServicesFilterOptions() {
+        // Remove old services group
+        $selectFilterItem.find('optgroup[type="services-group"]').remove();
+
+        const selectedClinic = ($selectClinic.val() || '').toLowerCase();
+        const services = (vars('available_services') || []).filter((s) => {
+            if (!selectedClinic) return true;
+            if (!s.location) return false;
+            return String(s.location).toLowerCase() === selectedClinic;
+        });
+
+        if (!services.length) return;
+
+        $('<optgroup/>', {
+            'label': lang('services'),
+            'type': 'services-group',
+            'html': services.map((availableService) => {
+                const label = availableService.location
+                    ? `${availableService.name} — ${availableService.location}`
+                    : availableService.name;
+                return $('<option/>', {
+                    'value': availableService.id,
+                    'type': FILTER_TYPE_SERVICE,
+                    'text': label,
+                });
+            }),
+        }).appendTo('#select-filter-item');
     }
 
     return {
