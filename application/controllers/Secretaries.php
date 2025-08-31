@@ -20,7 +20,7 @@
  */
 class Secretaries extends EA_Controller
 {
-    public array $allowed_provider_fields = ['id', 'first_name', 'last_name'];
+    public array $allowed_provider_fields = ['id', 'first_name', 'last_name', 'locations'];
     public array $allowed_secretary_fields = [
         'id',
         'first_name',
@@ -95,6 +95,22 @@ class Secretaries extends EA_Controller
         $providers = $this->providers_model->get();
 
         foreach ($providers as &$provider) {
+            // Load provider services to determine served locations
+            $this->providers_model->load($provider, ['services']);
+            $locations = [];
+            if (!empty($provider['services'])) {
+                foreach ($provider['services'] as $svc) {
+                    if (!empty($svc['location'])) {
+                        $loc = trim((string) $svc['location']);
+                        if ($loc !== '' && !in_array($loc, $locations, true)) {
+                            $locations[] = $loc;
+                        }
+                    }
+                }
+            }
+            $provider['locations'] = $locations;
+
+            // Keep only the fields needed by the frontend
             $this->providers_model->only($provider, $this->allowed_provider_fields);
         }
 

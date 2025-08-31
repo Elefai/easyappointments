@@ -522,7 +522,13 @@ App.Pages.Secretaries = (function () {
                             }),
                             $('<label/>', {
                                 'class': 'form-check-label',
-                                'text': provider.first_name + ' ' + provider.last_name,
+                                'text': (function () {
+                                    const name = provider.first_name + ' ' + provider.last_name;
+                                    const locs = Array.isArray(provider.locations) && provider.locations.length
+                                        ? ' — ' + provider.locations.join(', ')
+                                        : '';
+                                    return name + locs;
+                                })(),
                                 'for': checkboxId,
                             }),
                         ],
