@@ -1,0 +1,46 @@
+name: Packages Public
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'yes' to confirm making GHCR packages public"
+        required: true
+        default: "no"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  make-public:
+    if: ${{ github.event.inputs.confirm == 'yes' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PAT secret present
+        run: |
+          if [ -z "${{ secrets.PACKAGES_TOKEN }}" ]; then
+            echo "Missing repo secret PACKAGES_TOKEN (requires write:packages)" >&2
+            exit 1
+          fi
+
+      - name: Make GHCR packages public
+        env:
+          TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+        run: |
+          set -euo pipefail
+          API=https://api.github.com
+          HDRS=(
+            -H "Authorization: Bearer ${TOKEN}"
+            -H "Accept: application/vnd.github+json"
+            -H "X-GitHub-Api-Version: 2022-11-28"
+          )
+
+          for pkg in easyappointments-php-fpm easyappointments-php-fpm-prod easyappointments-web; do
+            echo "Setting visibility: ${pkg} -> public"
+            curl -sSf -X PATCH "${API}/user/packages/container/${pkg}/visibility" "${HDRS[@]}" -d '{"visibility":"public"}'
+            echo "\n${pkg}: OK"
+          done
+
+          echo "All packages updated to public."
+
