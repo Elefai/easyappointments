@@ -50,6 +50,16 @@ jobs:
             echo "tags=${IMAGE}:ci" >> $GITHUB_OUTPUT
           fi
 
+      - name: Compute platforms
+        id: plat
+        shell: bash
+        run: |
+          PLATFORMS="linux/amd64,linux/arm64"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ -amd64$ ]]; then
+            PLATFORMS="linux/amd64"
+          fi
+          echo "platforms=${PLATFORMS}" >> $GITHUB_OUTPUT
+
       - name: Build (PR) or Build+Push
         uses: docker/build-push-action@v5
         with:
@@ -57,7 +67,7 @@ jobs:
           file: docker/apache/Dockerfile.web
           build-args: |
             PHP_VARIANT=8.2
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.plat.outputs.platforms }}
           push: ${{ steps.vars.outputs.push }}
           tags: ${{ steps.vars.outputs.tags }}
           cache-from: type=gha
