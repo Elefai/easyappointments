@@ -65,42 +65,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build dev php-fpm image
+      - name: Build dev image (PR/branches)
+        if: steps.meta.outputs.push != 'true'
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile \
             --platform linux/amd64 \
-            ${{ steps.meta.outputs.tags_dev }} \
             --load \
-            .
+            -t easyappointments-php-fpm:ci .
 
-      - name: Build prod php-fpm image
+      - name: Build prod image (PR/branches)
+        if: steps.meta.outputs.push != 'true'
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile.prod \
             --platform linux/amd64 \
-            ${{ steps.meta.outputs.tags_prod }} \
             --load \
-            .
+            -t easyappointments-php-fpm-prod:ci .
 
-      - name: Push dev image
+      - name: Push dev image (multi-arch)
         if: steps.meta.outputs.push == 'true'
         run: |
-          for tag in ${{ steps.meta.outputs.tags_dev }}; do :; done
-          # rebuild with --push since Buildx can't push loaded images
           docker buildx build \
             -f docker/php-fpm/Dockerfile \
-            --platform linux/amd64 \
+            --platform linux/amd64,linux/arm64 \
             ${{ steps.meta.outputs.tags_dev }} \
             --push \
             .
 
-      - name: Push prod image
+      - name: Push prod image (multi-arch)
         if: steps.meta.outputs.push == 'true'
         run: |
           docker buildx build \
             -f docker/php-fpm/Dockerfile.prod \
-            --platform linux/amd64 \
+            --platform linux/amd64,linux/arm64 \
             ${{ steps.meta.outputs.tags_prod }} \
             --push \
             .

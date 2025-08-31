@@ -41,7 +41,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY gulpfile.js babel.config.json ./
 COPY assets ./assets
-RUN npm run build
+# Only build assets (skip archive)
+RUN npx gulp clean vendor scripts styles
 
 # Final runtime
 FROM php:8.4-fpm AS runtime
@@ -83,4 +84,3 @@ RUN chown -R www-data:www-data storage
 
 EXPOSE 9000
 CMD ["php-fpm"]
-
